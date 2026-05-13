@@ -131,18 +131,28 @@ int shim_statue_to_monster_tileidx(int glyph) {
 }
 
 /* If `glyph` is one of NetHack's "generic" class glyphs (the per-class
-   placeholders the engine uses for items the hero hasn't observed yet),
-   return the tileidx of the first real object in that class so a
-   graphical client can substitute the placeholder for a more meaningful
-   sprite (typically with a "?" overlay on top).  Returns -1 otherwise. */
+   placeholders the engine uses for items the hero hasn't observed yet)
+   OR the STRANGE_OBJECT placeholder, return the tileidx of the first
+   real object in that class so a graphical client can substitute the
+   placeholder for a more meaningful sprite (typically with a "?"
+   overlay on top).  For STRANGE_OBJECT (which has no class) returns 1
+   as a non-zero "yes, substitute" signal; the client is expected to
+   pick a sentinel tile itself.  Returns -1 if `glyph` isn't a
+   placeholder at all. */
 int shim_generic_object_first_tileidx(int glyph);
 int shim_generic_object_first_tileidx(int glyph) {
     int otyp = -1, oc_class, i;
+    boolean is_strange = (glyph == GLYPH_OBJ_OFF
+                          || glyph == GLYPH_OBJ_PILETOP_OFF);
 
     if (glyph_is_normal_generic_obj(glyph)) {
         otyp = glyph - GLYPH_OBJ_OFF;
     } else if (glyph_is_piletop_generic_obj(glyph)) {
         otyp = glyph - GLYPH_OBJ_PILETOP_OFF;
+    } else if (is_strange) {
+        return 1; /* signal-only: SwiftUI substitutes its own choice */
+    } else {
+        return -1;
     }
     if (otyp <= 0 || otyp >= FIRST_OBJECT) return -1;
 
