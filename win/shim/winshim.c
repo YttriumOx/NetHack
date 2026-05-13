@@ -89,6 +89,42 @@ void shim_graphics_set_callback(shim_callback_t cb) {
     shim_graphics_callback = cb;
 }
 
+/* The shipped tile atlases (monsters.txt / objects.txt / other.txt) don't
+   include the per-monster statue images that NetHack's tile2bmp generates
+   on the fly by grayscaling the monster tiles.  A graphical libnh client
+   that doesn't synthesise its own statue atlas can call this from a
+   shim_print_glyph dispatch to recover the underlying monster's tileidx
+   and render it in grayscale at draw time.  Returns the monster's tileidx,
+   or -1 if `glyph` isn't any of the four statue ranges. */
+int shim_statue_to_monster_tileidx(int glyph);
+int shim_statue_to_monster_tileidx(int glyph) {
+    int mnum, target;
+    boolean female = FALSE;
+
+    if (glyph_is_male_statue_piletop(glyph)) {
+        mnum = glyph - GLYPH_STATUE_MALE_PILETOP_OFF;
+    } else if (glyph_is_fem_statue_piletop(glyph)) {
+        mnum = glyph - GLYPH_STATUE_FEM_PILETOP_OFF;
+        female = TRUE;
+    } else if (glyph >= GLYPH_STATUE_MALE_OFF
+               && glyph < GLYPH_STATUE_MALE_OFF + NUMMONS) {
+        mnum = glyph - GLYPH_STATUE_MALE_OFF;
+    } else if (glyph >= GLYPH_STATUE_FEM_OFF
+               && glyph < GLYPH_STATUE_FEM_OFF + NUMMONS) {
+        mnum = glyph - GLYPH_STATUE_FEM_OFF;
+        female = TRUE;
+    } else {
+        return -1;
+    }
+    target = mnum + (female ? GLYPH_MON_FEM_OFF : GLYPH_MON_MALE_OFF);
+#ifdef TILES_IN_GLYPHMAP
+    return glyphmap[target].tileidx;
+#else
+    (void) target;
+    return -1;
+#endif
+}
+
 #define A2P
 #define P2V
 #define DECLCB(ret_type, name, fn_args, fmt, ...) \
