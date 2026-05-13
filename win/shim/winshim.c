@@ -96,6 +96,11 @@ void shim_graphics_set_callback(shim_callback_t cb) {
    shim_print_glyph dispatch to recover the underlying monster's tileidx
    and render it in grayscale at draw time.  Returns the monster's tileidx,
    or -1 if `glyph` isn't any of the four statue ranges. */
+#ifdef TILES_IN_GLYPHMAP
+/* glyphmap is defined in the generated tile.c; not declared in any header. */
+extern glyph_map glyphmap[MAX_GLYPH];
+#endif
+
 int shim_statue_to_monster_tileidx(int glyph);
 int shim_statue_to_monster_tileidx(int glyph) {
     int mnum, target;
