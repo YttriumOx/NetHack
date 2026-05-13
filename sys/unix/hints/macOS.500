@@ -336,7 +336,14 @@ ifdef WANT_LIBNH
 # TILES_IN_GLYPHMAP makes NetHack populate glyph_info.gm.tileidx so a
 # graphical libnh client can read it directly.  Without this define the
 # field stays at zero and every cell renders as tile 0.
-CFLAGS += -DSHIM_GRAPHICS -DNOTTYGRAPHICS -DNOSHELL -DLIBNH -DTILES_IN_GLYPHMAP
+#
+# STATUES_DONT_LOOK_LIKE_MONSTERS routes every statue glyph at the
+# generic STATUE object tile rather than a per-monster statue tile.
+# The shipped tile atlases (monsters.txt + objects.txt + other.txt)
+# don't include the per-monster statue variants, so without this define
+# statues land on out-of-range tile indices and render as nothing.
+CFLAGS += -DSHIM_GRAPHICS -DNOTTYGRAPHICS -DNOSHELL -DLIBNH \
+          -DTILES_IN_GLYPHMAP -DSTATUES_DONT_LOOK_LIKE_MONSTERS
 LIBNHSYSSRC = ../sys/libnh/libnhmain.c \
 		../sys/share/ioctl.c ../sys/share/unixtty.c \
 		../sys/unix/unixunix.c ../sys/unix/unixres.c \
