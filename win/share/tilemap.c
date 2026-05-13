@@ -553,7 +553,11 @@ tilename(int set, const int file_entry, int gend UNUSED)
 #ifndef STATUES_DONT_LOOK_LIKE_MONSTERS
 int lastmontile, lastobjtile, lastothtile, laststatuetile;
 #else
+/* With STATUES_DONT_LOOK_LIKE_MONSTERS, no per-monster statue tiles are
+   emitted, so the highest tile is whatever the `other` block ends at.
+   tile.c's `total_tiles_used` still needs a value, so alias the symbol. */
 int lastmontile, lastobjtile, lastothtile;
+#define laststatuetile lastothtile
 #endif
 
 /* Number of tiles for invisible monsters */
@@ -1207,17 +1211,23 @@ init_tilemap(void)
     }
 
 #ifdef STATUES_DONT_LOOK_LIKE_MONSTERS
-    /* statue patch: statues still use the same glyph as in 3.4.x */
-
-    for (i = 0; i < NUMMONS; i++) {
-        tilemap[GLYPH_STATUE_OFF + i].tilenum =
-            tilemap[GLYPH_OBJ_OFF + STATUE].tilenum;
+    /* statue patch: statues still use the same glyph as in 3.4.x.
+       NetHack 5.0 has four statue glyph ranges (MALE / FEM / MALE_PILETOP
+       / FEM_PILETOP) so cover them all. */
+    {
+        int statueTile = tilemap[GLYPH_OBJ_OFF + STATUE].tilenum;
+        for (i = 0; i < NUMMONS; i++) {
+            tilemap[GLYPH_STATUE_MALE_OFF + i].tilenum = statueTile;
+            tilemap[GLYPH_STATUE_FEM_OFF + i].tilenum = statueTile;
+            tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].tilenum = statueTile;
+            tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].tilenum = statueTile;
 #ifdef OBTAIN_TILEMAP
-        Snprintf(tilemap[GLYPH_STATUE_OFF + i].name,
-                 sizeof tilemap[0].name,
-                 "%s (%d)",
-                 tilename(OTH_GLYPH, file_entry, 0), file_entry);
+            Snprintf(tilemap[GLYPH_STATUE_MALE_OFF + i].name,
+                     sizeof tilemap[0].name,
+                     "%s (%d)",
+                     tilename(OTH_GLYPH, file_entry, 0), file_entry);
 #endif
+        }
     }
 #endif
     lastothtile = tilenum - 1;
