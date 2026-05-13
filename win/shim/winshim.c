@@ -130,6 +130,35 @@ int shim_statue_to_monster_tileidx(int glyph) {
 #endif
 }
 
+/* If `glyph` is one of NetHack's "generic" class glyphs (the per-class
+   placeholders the engine uses for items the hero hasn't observed yet),
+   return the tileidx of the first real object in that class so a
+   graphical client can substitute the placeholder for a more meaningful
+   sprite (typically with a "?" overlay on top).  Returns -1 otherwise. */
+int shim_generic_object_first_tileidx(int glyph);
+int shim_generic_object_first_tileidx(int glyph) {
+    int otyp = -1, oc_class, i;
+
+    if (glyph_is_normal_generic_obj(glyph)) {
+        otyp = glyph - GLYPH_OBJ_OFF;
+    } else if (glyph_is_piletop_generic_obj(glyph)) {
+        otyp = glyph - GLYPH_OBJ_PILETOP_OFF;
+    }
+    if (otyp <= 0 || otyp >= FIRST_OBJECT) return -1;
+
+    oc_class = objects[otyp].oc_class;
+    for (i = FIRST_OBJECT; i < NUM_OBJECTS; i++) {
+        if (objects[i].oc_class == oc_class) {
+#ifdef TILES_IN_GLYPHMAP
+            return glyphmap[GLYPH_OBJ_OFF + i].tileidx;
+#else
+            return -1;
+#endif
+        }
+    }
+    return -1;
+}
+
 #define A2P
 #define P2V
 #define DECLCB(ret_type, name, fn_args, fmt, ...) \
