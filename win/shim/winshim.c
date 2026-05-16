@@ -130,6 +130,15 @@ int shim_statue_to_monster_tileidx(int glyph) {
 #endif
 }
 
+/* Non-zero while the hero is on a level that should be rendered with
+   the Rogue-emulation symset (ASCII glyphs only).  NetHack sets
+   GMAP_ROGUELEVEL (0x2) on `gg.glyphmap_perlevel_flags` at every
+   `reset_glyphmap` call when `Is_rogue_level` is true. */
+int shim_is_rogue_level(void);
+int shim_is_rogue_level(void) {
+    return (gg.glyphmap_perlevel_flags & 0x2) ? 1 : 0;
+}
+
 /* If `glyph` is one of NetHack's "generic" class glyphs (the per-class
    placeholders the engine uses for items the hero hasn't observed yet)
    OR the STRANGE_OBJECT placeholder, return the tileidx of the first
