@@ -130,6 +130,16 @@ int shim_statue_to_monster_tileidx(int glyph) {
 #endif
 }
 
+/* The upstream shim windowport never flips iflags.window_inited, which
+   leaves a handful of NetHack code paths (notably `have_windows` in
+   really_done() — the tombstone branch) dead.  Let a graphical client
+   call this once their windowport is genuinely up so the post-game
+   "RIP" / score window is reachable. */
+void shim_mark_window_inited(void);
+void shim_mark_window_inited(void) {
+    iflags.window_inited = TRUE;
+}
+
 /* Non-zero while the hero is on a level that should be rendered with
    the Rogue-emulation symset (ASCII glyphs only).  NetHack sets
    GMAP_ROGUELEVEL (0x2) on `gg.glyphmap_perlevel_flags` at every
